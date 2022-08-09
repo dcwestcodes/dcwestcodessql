@@ -1,0 +1,79 @@
+/*
+Demajali West
+github.com/dcwestcodes
+linkedin.com/in/demajaliwest
+
+The following queries demonstrate my ability to use SQL
+to find data using relational tables. 
+*/
+
+USE tysql;
+SHOW Tables;
+
+-- List the customer information of all the customers who ordered product BNBG01
+
+Select *
+FROM Customers
+WHERE cust_id IN (
+				SELECT cust_id
+				FROM Orders
+				WHERE order_num IN (
+						SELECT order_num
+						FROM OrderItems
+						WHERE prod_id = 'BNBG01'));
+                        
+                        
+-- List all of the products ordered by customer The Toy Store
+
+Select prod_name
+FROM Products
+WHERE prod_id IN (
+				Select prod_id
+				FROM OrderItems
+				WHERE order_num IN (
+								SELECT order_num
+								FROM Orders
+								WHERE cust_id IN(
+									SELECT cust_id
+									FROM Customers
+									WHERE cust_name = 'The Toy Store')));
+								
+-- List the customer ID and the average amount each customer spent per order
+
+SELECT cust_id,
+	  (SELECT AVG(quantity / item_price)
+		FROM OrderItems
+		WHERE Orders.order_num = OrderItems.order_num) AS Average_Amount
+FROM Orders
+ORDER BY Average_Amount;    
+
+
+-- List the product name, product price, and total quantity sold in descending order
+SELECT prod_name,
+	   prod_price,
+       (SELECT SUM(quantity)
+        FROM OrderItems
+        WHERE Products.prod_id = OrderItems.prod_id) as total_quantity
+FROM Products
+ORDER BY total_quantity DESC;
+
+-- Joins
+
+SELECT cust_name,
+	   Orders.order_num,
+	   SUM(quantity * item_price) as OrdersTotal
+FROM Customers, Orders, OrderItems
+WHERE Customers.cust_id = Orders.cust_id
+	AND Orders.order_num = OrderItems.order_num
+GROUP BY cust_name, Orders.order_num
+ORDER BY cust_name, order_num;
+
+SELECT cust_name,
+	SUM(quantity * item_price) AS total_price
+FROM Customers
+	INNER JOIN Orders ON Customers.cust_id = Orders.cust_id
+	INNER JOIN OrderItems ON ORders.order_num = OrderItems.order_num
+GROUP BY cust_name
+HAVING SUM(item_price * quantity) >= 1000
+ORDER BY cust_name;
+
